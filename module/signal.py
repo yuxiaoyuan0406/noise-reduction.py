@@ -1,10 +1,9 @@
-import numpy as np
-import util
 import matplotlib.pyplot as plt
-from numba import njit
+import numpy as np
+# from numba import njit
 
 
-@njit
+# @njit
 def t_to_f(x: np.ndarray, dt: float):
     f, df = np.linspace(-.5 / dt,
                         .5 / dt,
@@ -15,7 +14,7 @@ def t_to_f(x: np.ndarray, dt: float):
     return f, df, X
 
 
-@njit
+# @njit
 def f_to_t(X: np.ndarray, df: float, t0: float = 0):
     t, dt = np.linspace(t0, t0 + 1 / df, len(X), endpoint=False, retstep=True)
     x = np.fft.ifft(np.fft.ifftshift(X))
@@ -41,6 +40,7 @@ class Signal:
             self.df = f[1] - f[0]
             self.X = np.array(val)
             self.t, self.dt, self.x = f_to_t(self.X, self.df, 0)
+            # self.x = np.real(self.x)
         elif t is not None and f is None:
             self.t = np.array(t)
             self.dt = t[1] - t[0]
@@ -63,16 +63,16 @@ class Signal:
         # 检查是否提供了Axes对象，如果没有则创建新的Figure和Axes
         if ax is None:
             fig, ax = plt.subplots()
-            ax.legend(loc='upper right')
             ax.grid(True)
         else:
             fig = ax.figure  # 获取Axes所属的Figure对象
 
-        ax.plot(self.t, self.x, color=self.color,
+        ax.plot(self.t, np.real(self.x), color=self.color,
                 label=self.label)  # 使用提供的x_data和y_data进行作图
         # ax.set_title('Data Plot')
         # ax.set_xlabel('X-Axis')
         # ax.set_ylabel('Y-Axis')
+        ax.legend(loc='upper right')
 
         plt.tight_layout()
         if show:
@@ -100,20 +100,24 @@ class Signal:
             fig, (ax_power, ax_phase) = plt.subplots(2, 1, sharex=True)
             ax_power.grid(True)
             ax_phase.grid(True)
-            ax_power.legend(loc='upper right')
-            ax_phase.legend(loc='upper right')
+            # ax_power.set_xscale('log')
+            # ax_phase.set_xscale('log')
+            ax_power.set_ylabel('dB')
             plt.tight_layout()
         else:
             fig = ax_power.figure
 
         ax_power.plot(self.f,
-                      np.abs(self.X),
+                      20 * np.log10(np.abs(self.X)),
                       color=self.color,
                       label=self.label)
         ax_phase.plot(self.f,
-                      np.angle(self.X, deg=True),
+                      np.angle(self.X + 1e-3, deg=True),
                       color=self.color,
                       label=self.label)
+
+        ax_power.legend(loc='upper right')
+        ax_phase.legend(loc='upper right')
 
         if show:
             plt.show(block=block)
@@ -143,5 +147,13 @@ class Filter:
         out = Signal(filt * sig.X, f=sig.f, color=color, label=label)
         return out
 
-if __name__ == '__main__':
-    pass
+    def plot(
+        self,
+        f,
+        ax_power=None,
+        ax_phase=None,
+        show=False,
+        block=False,
+    ):
+        sig = Signal(np.ones(f.shape) * self.filter(f), f=f, label=self.label)
+        return sig.plot_freq_domain(ax_power=ax_power, ax_phase=ax_phase, show=show, block=block)
