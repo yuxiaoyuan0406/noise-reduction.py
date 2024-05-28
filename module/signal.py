@@ -5,6 +5,15 @@ import numpy as np
 
 # @njit
 def t_to_f(x: np.ndarray, dt: float):
+    """transform signal from time domain to frequency domain
+
+    Args:
+        x (np.ndarray): input data in time domain
+        dt (float): time resolution
+
+    Returns:
+        np.ndarray, float, np.ndarray: frequency array, frequency resolution, signal in frequency domain
+    """    
     f, df = np.linspace(-.5 / dt,
                         .5 / dt,
                         len(x),
@@ -16,6 +25,16 @@ def t_to_f(x: np.ndarray, dt: float):
 
 # @njit
 def f_to_t(X: np.ndarray, df: float, t0: float = 0):
+    """transform signal from frequency domain to time domain
+
+    Args:
+        X (np.ndarray): input data in frequency domain
+        df (float): frequency resolution
+        t0 (float, optional): the begin time of time array. Defaults to 0.
+
+    Returns:
+        np.ndarray, float, np.ndarray: time sequence, time resolution, data in time domain
+    """    
     t, dt = np.linspace(t0, t0 + 1 / df, len(X), endpoint=False, retstep=True)
     x = np.fft.ifft(np.fft.ifftshift(X))
     return t, dt, x
@@ -143,6 +162,16 @@ class Filter:
         color=None,
         label: str = '',
     ):
+        """Apply filter to target signal in frequency domain.
+
+        Args:
+            sig (Signal): Input signal
+            color (_type_, optional): The color of output signal when plotting. Defaults to None.
+            label (str, optional): The label of the output signal. Defaults to ''.
+
+        Returns:
+            Signal: Output.
+        """    
         filt = self.filter(sig.f)
         out = Signal(filt * sig.X, f=sig.f, color=color, label=label)
         return out
@@ -155,5 +184,17 @@ class Filter:
         show=False,
         block=False,
     ):
+        """Plot the frequency figure of the filter.
+
+        Args:
+            f (np.ndarray): The frequency sequency to plot.
+            ax_power (matplotlib.axes.Axes, optional): The axe to plot power. Defaults to None.
+            ax_phase (matplotlib.axes.Axes, optional): The axe to plot phase. Defaults to None.
+            show (bool, optional): Show. Defaults to False.
+            block (bool, optional): When show, block. Defaults to False.
+
+        Returns:
+            axes: Axes.
+        """
         sig = Signal(np.ones(f.shape) * self.filter(f), f=f, label=self.label)
         return sig.plot_freq_domain(ax_power=ax_power, ax_phase=ax_phase, show=show, block=block)
