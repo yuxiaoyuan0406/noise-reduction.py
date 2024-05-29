@@ -151,6 +151,13 @@ def sample(x: np.ndarray, t: np.ndarray, gap: int, bias: int):
             x_sp.append(x[_])
     return np.array(t_sp), np.array(x_sp)
 
+@njit
+def sample_t(x: np.ndarray, t: np.ndarray, ts: float, bias: float):
+    dt = t[1] - t[0]
+    gap = int(ts/dt)
+    bias = int(bias/dt)
+    return sample(x, t, gap, bias)
+
 if __name__ == '__main__':
     t,dt = np.linspace(0,2,2000000, endpoint=False, retstep=True)
     a = np.sin(2*np.pi*50*t) + np.sin(2*np.pi*5e4*t)
