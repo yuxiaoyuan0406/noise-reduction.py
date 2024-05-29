@@ -240,3 +240,33 @@ class Filter:
                                     ax_phase=ax_phase,
                                     show=show,
                                     block=block)
+
+
+class WhiteNoise(Signal):
+
+    def __init__(
+        self,
+        t: np.ndarray,
+        loc: float = 0,
+        scale: float = 1,
+        color=None,
+        label: str = 'White Noise',
+    ):
+        noise = np.random.normal(loc=loc, scale=scale, size=len(t))
+        super().__init__(val=noise, t=t, color=color, label=label)
+
+
+class SquareWave(Signal):
+
+    def __init__(
+        self,
+        t=None,
+        freq: float = 1,
+        amp: float = 1,
+        # bias: float = 0,
+        color=None,
+        label: str = 'Square Wave'
+    ):
+        val = np.sin(2 * np.pi * freq * t)
+        val = np.sign(val) * amp# + bias
+        super().__init__(val, t=t, color=color, label=label)
