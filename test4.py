@@ -3,29 +3,33 @@ import matplotlib.pyplot as plt
 import util
 from module import *
 
+SAMPLE_RATE = 62.5 * 1e3 * 4
+SAMPLE_BIAS = (1/SAMPLE_RATE) * 1/2
+
 def system1(input:Signal):
     ## Low pass
     def lp_filter(f):
         # return 1
-        return util.ideal_low_pass_filter(f, 1 * 1e6)
+        return util.low_pass_filter(f, 100 * 1e3)
     lp = Filter(lp_filter, label='Low pass filter')
     # lp.plot(input.f)
 
     ## High pass
     def hp_filter(f):
-        return 1
-        return util.high_pass_filter(f, 10 * 1e3, 500 * 1e3)
+        # return 1
+        return util.high_pass_filter(f, 10 * 1e3, 100 * 1e3)
     hp = Filter(hp_filter, label='High pass filter')
     # hp.plot(original.f, ax_power=ax_power, ax_phase=ax_phase)
 
     x1 = hp.apply(input, label=f'{input.label}->HP')
-    x1.plot_time_domain()
-    x1.plot_freq_domain()
+    # x1.plot_time_domain()
+    # x1.plot_freq_domain()
     x2 = lp.apply(x1, label=f'{x1.label}->LP')
-    x2.plot_time_domain()
-    x2.plot_freq_domain()
+    # x2.plot_time_domain()
+    # x2.plot_freq_domain()
     # plt.show(block=False)
-    t_out, out = util.sample(x2.x, x2.t, 512, 200)
+    # t_out, out = util.sample(x2.x, x2.t, 512, 200)
+    t_out, out = util.sample_t(x2.x, x2.t, 1/SAMPLE_RATE, SAMPLE_BIAS)
     out = Signal(out, t=t_out, label=f'{x2.label}->Smp')
     return out
 
@@ -37,16 +41,16 @@ if __name__ == '__main__':
 
     ## simulation parameters
     t0 = 0
-    dt = 1.25e-7 * 0.5 * 0.5 * 0.5 * 0.5 * 0.5 * 0.5
-    # dt = 1e-6
-    t_len = .25 * 0.5 * 0.5 * 0.5
+    # dt = 1.25e-7 * 0.5 * 0.5 * 0.5 * 0.5 * 0.5 * 0.5
+    dt = 5e-8
+    t_len = .5
     t = np.linspace(t0, t0 + t_len, int(t_len/dt), endpoint=False)
 
     ## original signal
-    f0 = 10 * 1e3
+    f0 = 20 * 1e3
     original = Signal(np.sin(2 * np.pi * f0 * t), t=t, label='original')
-    ax_time = original.plot_time_domain(ax=ax_time)
-    ax_power, ax_phase = original.plot_freq_domain(ax_power=ax_power, ax_phase=ax_phase)
+    # ax_time = original.plot_time_domain(ax=ax_time)
+    # ax_power, ax_phase = original.plot_freq_domain(ax_power=ax_power, ax_phase=ax_phase)
 
     ## PID
     def pid_func(f):
@@ -66,7 +70,7 @@ if __name__ == '__main__':
 
     ## sample original signal
     smp = []
-    period = 512
+    period = 1 / SAMPLE_RATE / dt
     for i in range(len(original.t)):
         if i % period < period/2:
             # if i % period == 0 and i // period != 0:
@@ -79,9 +83,9 @@ if __name__ == '__main__':
     # ax_time = original_sampled.plot_time_domain(ax=ax_time)
     # ax_power, ax_phase = original_sampled.plot_freq_domain(ax_power=ax_power, ax_phase=ax_phase)
 
-    # ori_smp_hp_lp = system1(original_sampled)
-    # ax_time = ori_smp_hp_lp.plot_time_domain(ax=ax_time)
-    # ax_power, ax_phase = ori_smp_hp_lp.plot_freq_domain(ax_power=ax_power, ax_phase=ax_phase)
+    ori_smp_hp_lp = system1(original_sampled)
+    ax_time = ori_smp_hp_lp.plot_time_domain(ax=ax_time)
+    ax_power, ax_phase = ori_smp_hp_lp.plot_freq_domain(ax_power=ax_power, ax_phase=ax_phase)
     ori_hp_lp = system1(original)
     ax_time = ori_hp_lp.plot_time_domain(ax=ax_time)
     ax_power, ax_phase = ori_hp_lp.plot_freq_domain(ax_power=ax_power, ax_phase=ax_phase)

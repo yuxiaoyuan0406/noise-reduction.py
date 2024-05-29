@@ -1,6 +1,43 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pyfftw
 # from numba import njit
+
+
+def fft(x: np.ndarray):
+    # Create arrays aligned for FFTW
+    x_aligned = pyfftw.empty_aligned(x.shape, dtype='complex128')
+    X_aligned = pyfftw.empty_aligned(x.shape, dtype='complex128')
+
+    # Initialize FFT object
+    fft_object = pyfftw.FFTW(x_aligned, X_aligned)
+
+    # Copy data to FFTW input
+    x_aligned[:] = x
+
+    # Compute FFT and shift
+    fft_object()  # FFT is performed in-place
+    X = np.fft.fftshift(X_aligned)
+
+    return X
+
+
+def ifft(X: np.ndarray):
+    # Create arrays aligned for FFTW
+    X_aligned = pyfftw.empty_aligned(X.shape, dtype='complex128')
+    x_aligned = pyfftw.empty_aligned(X.shape, dtype='complex128')
+
+    # Initialize IFFT object
+    ifft_object = pyfftw.FFTW(X_aligned, x_aligned, direction='FFTW_BACKWARD')
+
+    # Copy data to FFTW input
+    X_aligned[:] = X
+
+    # Compute IFFT and shift
+    ifft_object()  # IFFT is performed in-place
+    x = np.fft.ifftshift(x_aligned)
+
+    return x
 
 
 # @njit
@@ -13,13 +50,14 @@ def t_to_f(x: np.ndarray, dt: float):
 
     Returns:
         np.ndarray, float, np.ndarray: frequency array, frequency resolution, signal in frequency domain
-    """    
+    """
     f, df = np.linspace(-.5 / dt,
                         .5 / dt,
                         len(x),
                         endpoint=False,
                         retstep=True)
     X = np.fft.fftshift(np.fft.fft(x))
+    # X = np.fft.fftshift(fft(x))
     return f, df, X
 
 
@@ -34,9 +72,10 @@ def f_to_t(X: np.ndarray, df: float, t0: float = 0):
 
     Returns:
         np.ndarray, float, np.ndarray: time sequence, time resolution, data in time domain
-    """    
+    """
     t, dt = np.linspace(t0, t0 + 1 / df, len(X), endpoint=False, retstep=True)
     x = np.fft.ifft(np.fft.ifftshift(X))
+    # x = ifft(np.fft.ifftshift(X))
     return t, dt, x
 
 
@@ -171,7 +210,7 @@ class Filter:
 
         Returns:
             Signal: Output.
-        """    
+        """
         filt = self.filter(sig.f)
         out = Signal(filt * sig.X, f=sig.f, color=color, label=label)
         return out
@@ -197,4 +236,7 @@ class Filter:
             axes: Axes.
         """
         sig = Signal(np.ones(f.shape) * self.filter(f), f=f, label=self.label)
-        return sig.plot_freq_domain(ax_power=ax_power, ax_phase=ax_phase, show=show, block=block)
+        return sig.plot_freq_domain(ax_power=ax_power,
+                                    ax_phase=ax_phase,
+                                    show=show,
+                                    block=block)
