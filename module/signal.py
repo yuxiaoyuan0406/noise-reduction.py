@@ -94,12 +94,20 @@ class Signal:
         self.color = color
         self.label = label
         if t is None and f is not None:
+            if len(val) != len(f):
+                raise ValueError(
+                    f'`val` and `f` must have same length, but have length {len(val)} and {len(f)}'
+                )
             self.f = np.array(f)
             self.df = f[1] - f[0]
             self.X = np.array(val)
             self.t, self.dt, self.x = f_to_t(self.X, self.df, 0)
             # self.x = np.real(self.x)
         elif t is not None and f is None:
+            if len(val) != len(t):
+                raise ValueError(
+                    f'`val` and `t` must have same length, but have length {len(val)} and {len(t)}'
+                )
             self.t = np.array(t)
             self.dt = t[1] - t[0]
             self.x = np.array(val)
