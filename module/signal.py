@@ -269,15 +269,25 @@ class WhiteNoise(Signal):
 
 class SquareWave(Signal):
 
-    def __init__(
-        self,
-        t=None,
-        freq: float = 1,
-        amp: float = 1,
-        # bias: float = 0,
-        color=None,
-        label: str = 'Square Wave'
-    ):
-        val = np.sin(2 * np.pi * freq * t)
-        val = np.sign(val) * amp# + bias
+    def __init__(self,
+                 t: np.ndarray,
+                 freq: float = 1,
+                 amp: float = 1,
+                 init_phase: float = 0,
+                 bias: float = 0,
+                 ideal=False,
+                 color=None,
+                 label: str = 'Square Wave'):
+        period = 1 / freq
+        dt = t[1] - t[0]
+        if ideal:
+            # val = []
+            period = int(period / dt)
+            # for _ in range(len(t)):
+            val = np.array(
+                [1 if _ % period < period / 2 else -1 for _ in range(len(t))],
+                dtype=np.float64)
+        else:
+            val = np.sign(np.sin(2 * np.pi * freq * t + init_phase))
+        val = val * amp + bias
         super().__init__(val, t=t, color=color, label=label)
