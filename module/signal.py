@@ -3,6 +3,7 @@ import numpy as np
 import pyfftw
 # from numba import njit
 
+EPSILON = 1e-12 # To avoid calculate log of zero
 
 def fft(x: np.ndarray):
     # Create arrays aligned for FFTW
@@ -173,12 +174,14 @@ class Signal:
         else:
             fig = ax_power.figure
 
-        ax_power.plot(self.f,
-                      20 * np.log10(np.abs(self.X)),
-                      color=self.color,
-                      label=self.label)
+        ax_power.plot(
+            self.f,
+            20 * np.log10(np.abs(self.X) + EPSILON),
+            # np.abs(self.X),
+            color=self.color,
+            label=self.label)
         ax_phase.plot(self.f,
-                      np.angle(self.X + 1e-3, deg=True),
+                      np.angle(self.X + EPSILON, deg=True),
                       color=self.color,
                       label=self.label)
 
