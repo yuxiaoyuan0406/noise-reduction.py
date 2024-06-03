@@ -1,2 +1,2 @@
 from .signal import *
-import .tests
+from .tests import *

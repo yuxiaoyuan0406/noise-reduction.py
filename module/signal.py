@@ -174,14 +174,19 @@ class Signal:
         else:
             fig = ax_power.figure
 
+        # calculate white noise to avoid log(0) or arctant(y/0)
+        non_zero_min = np.min(np.abs(self.X[self.X > 0]))
+        mean_amplitude = np.mean(np.abs(self.X))
+        epsilon = min(non_zero_min * 0.01, mean_amplitude * 0.01, np.finfo(self.X.dtype).tiny)        
+
         ax_power.plot(
             self.f,
-            20 * np.log10(np.abs(self.X) + EPSILON),
+            20 * np.log10(np.abs(self.X) + epsilon),
             # np.abs(self.X),
             color=self.color,
             label=self.label)
         ax_phase.plot(self.f,
-                      np.angle(self.X + EPSILON, deg=True),
+                      np.angle(self.X + epsilon, deg=True),
                       color=self.color,
                       label=self.label)
 
