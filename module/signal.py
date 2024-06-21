@@ -110,6 +110,7 @@ class Signal:
                     f'`val` and `t` must have same length, but have length {len(val)} and {len(t)}'
                 )
             self.t = np.array(t)
+            self.t = self.t - self.t[0]
             self.dt = t[1] - t[0]
             self.x = np.array(val)
             self.f, self.df, self.X = t_to_f(self.x, self.dt)
@@ -175,9 +176,10 @@ class Signal:
             fig = ax_power.figure
 
         # calculate white noise to avoid log(0) or arctant(y/0)
-        non_zero_min = np.min(np.abs(self.X[self.X > 0]))
+        non_zero_min = np.min(np.abs(self.X[np.abs(self.X) > 0]))
         mean_amplitude = np.mean(np.abs(self.X))
         epsilon = min(non_zero_min * 0.01, mean_amplitude * 0.01, np.finfo(self.X.dtype).tiny)        
+        # epsilon = EPSILON
 
         ax_power.plot(
             self.f,
@@ -256,6 +258,12 @@ class Filter:
                                     ax_phase=ax_phase,
                                     show=show,
                                     block=block)
+
+def load_from_text(filename, label='data'):
+    data = np.loadtxt(filename).transpose()
+    t = data[0]
+    val = data[1]
+    return Signal(val, t=t, label=label)
 
 
 class WhiteNoise(Signal):
