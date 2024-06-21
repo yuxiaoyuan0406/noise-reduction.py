@@ -2,6 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from module.signal import Signal, SquareWave
+from module.signal import UnitStep
 
 matplotlib.use('TkAgg')
 
@@ -44,8 +45,20 @@ def SquareWaveIdealTest(timeout=1., dt=5e-7, freq=62.5 * 1e3, amp=.5, bias=.5):
                                                         ax_phase=ax_phase)
 
 
+def UnitStepSignalTest(timeout=1., dt=5e-7, freq=62.5 * 1e3, amp=.5, t0=0.1):
+    t = np.linspace(0, timeout, int(timeout / dt), endpoint=False)
+    ax_time, ax_power, ax_phase = None, None, None
+
+    step = UnitStep(t, t0, amp, label='unit step')
+
+    ax_time = step.plot_time_domain(ax=ax_time)
+    ax_power, ax_phase = step.plot_freq_domain(ax_power=ax_power,
+                                               ax_phase=ax_phase)
+
+
 if __name__ == '__main__':
-    SquareWaveIdealTest()
+    # SquareWaveIdealTest()
+    UnitStepSignalTest(t0=0)
 
     plt.show(block=False)
     input('Enter to exit...')

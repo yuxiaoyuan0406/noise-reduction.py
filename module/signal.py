@@ -177,7 +177,8 @@ class Signal:
         # calculate white noise to avoid log(0) or arctant(y/0)
         non_zero_min = np.min(np.abs(self.X[self.X > 0]))
         mean_amplitude = np.mean(np.abs(self.X))
-        epsilon = min(non_zero_min * 0.01, mean_amplitude * 0.01, np.finfo(self.X.dtype).tiny)        
+        epsilon = min(non_zero_min * 0.01, mean_amplitude * 0.01,
+                      np.finfo(self.X.dtype).tiny)
 
         ax_power.plot(
             self.f,
@@ -270,6 +271,21 @@ class WhiteNoise(Signal):
     ):
         noise = np.random.normal(loc=loc, scale=scale, size=len(t))
         super().__init__(val=noise, t=t, color=color, label=label)
+
+
+class UnitStep(Signal):
+
+    def __init__(
+            self,
+            t: np.ndarray,
+            t0: float = 0,
+            # f=None,
+            amp=1.,
+            color=None,
+            label: str = 'Unit step'):
+        _t = t - t0
+        val = np.sign(_t + np.abs(_t)) * amp
+        super().__init__(val, t=t, color=color, label=label)
 
 
 class SquareWave(Signal):
